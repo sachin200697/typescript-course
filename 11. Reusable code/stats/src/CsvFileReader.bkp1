@@ -1,0 +1,31 @@
+import fs from "fs";
+import { dateStringToDate } from "./utils";
+import { MatchResult } from "./MatchResult";
+
+type MatchData = [Date, string, string, number, number, MatchResult, string]
+export class CsvFileReader {
+//   data: string[][] = [];
+  data: MatchData[] = [];
+  constructor(public fileName: string) {}
+
+  read(): void {
+    let contentOfFileAsSingleString = fs.readFileSync(this.fileName, {
+      encoding: "utf-8",
+    });
+
+    this.data = contentOfFileAsSingleString
+      .split("\n")
+      .map((element: string): string[] => element.split(","))
+      .map((row:string[]):MatchData =>{
+        return [
+            dateStringToDate(row[0]),
+            row[1],
+            row[2],
+            parseInt(row[3]),
+            parseInt(row[4]),
+            row[5] as MatchResult,  //it means row[5] is one of the values of MatchResult enum
+            row[6]
+        ]
+      });
+  }
+}
