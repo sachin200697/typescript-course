@@ -36,6 +36,8 @@ practice();
 
 const csvReader = new CsvFileReader('./football.csv');
 const reader = new MatchReader(csvReader);
+const reader2 = MatchReader.fromCSV('./football.csv');
+reader2.load();
 reader.load();
 
 
@@ -59,4 +61,11 @@ const summary = new Summary(winsAnalysis, consoleReport);
 const summary2 = new Summary(winsAnalysis, htmlReport);
 
 // summary.buildAndPrintReport(reader.matches);
-summary2.buildAndPrintReport(reader.matches);
+// summary2.buildAndPrintReport(reader.matches);
+
+const summary3 = Summary.winsAnalysisWithHtmlReport("Man United");
+summary3.buildAndPrintReport(reader2.matches);
+
+
+
+
