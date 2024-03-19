@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start:parcel": "npx parcel index.html",
-    "start:json-server": "json-server -w db.json"
+    "start:json-server": "json-server -w db.json --port 5007"
   },
   "keywords": [],
   "author": "",

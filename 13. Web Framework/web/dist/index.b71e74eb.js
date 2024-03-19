@@ -580,68 +580,112 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 
 },{}],"h7u1C":[function(require,module,exports) {
 var _user = require("./models/User");
-const user = new (0, _user.User)({
-    name: "Hanuman",
-    age: 1000
+var _collection = require("./models/Collection");
+var _userList = require("./views/UserList");
+// const user = User.buildUser({id: 1});
+// user.on('save', ()=>{
+//     console.log(user);  
+// })
+// user.on('change', ()=>{
+//     console.log(user); 
+// })
+// user.fetch();
+const collection = (0, _user.User).buildUserCollection();
+collection.on("change", ()=>{
+// console.log(collection);
 });
-user.on("save", ()=>{
-    console.log(user);
+collection.fetch();
+const elememnt = document.getElementById("root");
+const user = (0, _user.User).buildUser({
+    age: 20,
+    name: "John"
 });
-user.save();
+// const userForm = new UserForm(elememnt, user);
+// userForm.render();
+// const userEdit = new UserEdit(elememnt, user);
+// userEdit.render();
+// console.log(userEdit);
+let users = new (0, _collection.Collection)("http://localhost:5007/users", (json)=>(0, _user.User).buildUser(json));
+users.fetch();
+users.on("change", ()=>{
+    if (elememnt) new (0, _userList.UserList)(elememnt, users).render();
+});
 
-},{"./models/User":"4rcHn"}],"4rcHn":[function(require,module,exports) {
+},{"./models/User":"4rcHn","./models/Collection":"dD11O","./views/UserList":"mUs49"}],"4rcHn":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "User", ()=>User);
+var _model = require("./Model");
+var _apiSync = require("./ApiSync");
 var _attributes = require("./Attributes");
 var _eventing = require("./Eventing");
-var _sync = require("./Sync");
-const rootUrl = `http://localhost:3000/users`;
-class User {
-    constructor(attr){
-        this.events = new (0, _eventing.Eventing)();
-        // because UserProps has id as optional,
-        // so will have to make it optional as well inside Sync->HasId interface
-        this.sync = new (0, _sync.Sync)(rootUrl);
-        this.attributes = new (0, _attributes.Attributes)({});
-        this.attributes = new (0, _attributes.Attributes)(attr);
+var _collection = require("./Collection");
+const rootUrl = `http://localhost:5007/users`;
+class User extends (0, _model.Model) {
+    // we are putting all below functionality in Model class
+    // public events: Eventing = new Eventing();
+    // because UserProps has id as optional,
+    // so will have to make it optional as well inside Sync->HasId interface
+    // public sync: Sync<UserProps> = new Sync<UserProps>(rootUrl);
+    // public attributes: Attributes<UserProps> = new Attributes<UserProps>({});
+    // constructor(attr: UserProps) {
+    //   this.attributes = new Attributes<UserProps>(attr);
+    // }
+    // // because we are returning a method get, it means we can use like user.on(p1,p2)
+    // // and it will directly call attributes.get method
+    // // but still there is a problem about it because we are calling it like user.on(p1,p2)
+    // // but user does not has data property so it will faild as this is refering to user not Attributes.
+    // // so to solve it just make method attribute.get as arrow function
+    // get get() {
+    //   return this.attributes.get;
+    // }
+    // get on() {
+    //   return this.events.on;
+    // }
+    // get trigger() {
+    //   return this.events.trigger;
+    // }
+    // set(update: UserProps): void {
+    //   this.attributes.set(update);
+    //   this.events.trigger("change");
+    // }
+    // fetch(): void {
+    //   const id = this.get("id");
+    //   if (typeof id !== "number") {
+    //     throw new Error("Cannot fetch without an id");
+    //   } else {
+    //     this.sync.fetch(id).then((response: AxiosResponse): void => {
+    //       this.set(response.data);
+    //     });
+    //   }
+    // }
+    // save(): void {
+    //   const data = this.attributes.getAll();
+    //   this.sync
+    //     .save(data)
+    //     .then((response: AxiosResponse): void => {
+    //       this.events.trigger("save");
+    //     })
+    //     .catch((): void => {
+    //       this.events.trigger("error");
+    //     });
+    // }
+    static buildUser(attrs) {
+        // If no constructor is defined the default constructor is used,
+        // which calls super with all the passed arguments
+        return new User(new (0, _attributes.Attributes)(attrs), new (0, _eventing.Eventing)(), new (0, _apiSync.ApiSync)(rootUrl));
     }
-    // necause we are returning a method get, it means we can use like user.on(p1,p2)
-    // and it will directly call attributes.get method
-    // but still there is a problem about it because we are calling it like user.on(p1,p2)
-    // but user does not has data property so it will faild as this is refering to user not Attributes.
-    // so to solve it just make method attribute.get as arrow function
-    get get() {
-        return this.attributes.get;
+    static buildUserCollection() {
+        return new (0, _collection.Collection)(rootUrl, (json)=>User.buildUser(json));
     }
-    get on() {
-        return this.events.on;
-    }
-    get trigger() {
-        return this.events.trigger;
-    }
-    set(update) {
-        this.attributes.set(update);
-        this.events.trigger("change");
-    }
-    fetch() {
-        const id = this.get("id");
-        if (typeof id !== "number") throw new Error("Cannot fetch without an id");
-        else this.sync.fetch(id).then((response)=>{
-            this.set(response.data);
-        });
-    }
-    save() {
-        const data = this.attributes.getAll();
-        this.sync.save(data).then((response)=>{
-            this.events.trigger("save");
-        }).catch(()=>{
-            this.events.trigger("error");
+    setRandomAge() {
+        this.set({
+            age: Math.random() * 100
         });
     }
 }
 
-},{"./Attributes":"6Bbds","./Eventing":"7459s","./Sync":"QO3Gl","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"6Bbds":[function(require,module,exports) {
+},{"./Attributes":"6Bbds","./Eventing":"7459s","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./Model":"f033k","./ApiSync":"3wylh","./Collection":"dD11O"}],"6Bbds":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Attributes", ()=>Attributes);
@@ -740,13 +784,60 @@ class Eventing {
     }
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"QO3Gl":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"f033k":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "Sync", ()=>Sync);
+parcelHelpers.export(exports, "Model", ()=>Model);
+class Model {
+    constructor(attributes, events, sync){
+        this.attributes = attributes;
+        this.events = events;
+        this.sync = sync;
+        this.//   get on() {
+        //     return this.events.on;
+        //   }
+        // instead of using get keywork, we can also use someting like below
+        on = this.events.on;
+    }
+    // because we are returning a method get, it means we can use like user.on(p1,p2)
+    // and it will directly call attributes.get method
+    // but still there is a problem about it because we are calling it like user.on(p1,p2)
+    // but user does not has data property so it will faild as this is refering to user not Attributes.
+    // so to solve it just make method attribute.get as arrow function
+    get get() {
+        return this.attributes.get;
+    }
+    get trigger() {
+        return this.events.trigger;
+    }
+    set(update) {
+        this.attributes.set(update);
+        this.events.trigger("change");
+    }
+    fetch() {
+        const id = this.get("id");
+        if (typeof id !== "number") throw new Error("Cannot fetch without an id");
+        else this.sync.fetch(id).then((response)=>{
+            this.set(response.data);
+        });
+    }
+    save() {
+        const data = this.attributes.getAll();
+        this.sync.save(data).then((response)=>{
+            this.events.trigger("save");
+        }).catch(()=>{
+            this.events.trigger("error");
+        });
+    }
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"3wylh":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "ApiSync", ()=>ApiSync);
 var _axios = require("axios");
 var _axiosDefault = parcelHelpers.interopDefault(_axios);
-class Sync {
+class ApiSync {
     constructor(rootUrl){
         this.rootUrl = rootUrl;
     }
@@ -757,7 +848,7 @@ class Sync {
         const { id } = data;
         if (id) // update existing with new changes
         return (0, _axiosDefault.default).put(`${this.rootUrl}/${id}`, data);
-        else // create a new object 
+        else // create a new object
         return (0, _axiosDefault.default).post(`${this.rootUrl}`, data);
     }
 }
@@ -5136,6 +5227,149 @@ Object.entries(HttpStatusCode).forEach(([key, value])=>{
     HttpStatusCode[value] = key;
 });
 exports.default = HttpStatusCode;
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"dD11O":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+// import { User, UserProps } from "./User";
+parcelHelpers.export(exports, "Collection", ()=>Collection);
+var _axios = require("axios");
+var _axiosDefault = parcelHelpers.interopDefault(_axios);
+var _eventing = require("./Eventing");
+class Collection {
+    constructor(rootUrl, desearialize){
+        this.rootUrl = rootUrl;
+        this.desearialize = desearialize;
+        this.models = [];
+        this.events = new (0, _eventing.Eventing)();
+    }
+    get on() {
+        return this.events.on;
+    }
+    get trigger() {
+        return this.events.trigger;
+    }
+    fetch() {
+        (0, _axiosDefault.default).get(this.rootUrl).then((response)=>{
+            response.data.map((value)=>{
+                this.models.push(this.desearialize(value));
+            });
+            this.trigger("change");
+        });
+    }
+}
+
+},{"axios":"jo6P5","./Eventing":"7459s","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"mUs49":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "UserList", ()=>UserList);
+var _collectionView = require("./CollectionView");
+var _userShow = require("./UserShow");
+class UserList extends (0, _collectionView.CollectionView) {
+    renderItem(model, itemParent) {
+        new (0, _userShow.UserShow)(itemParent, model).render();
+    }
+}
+
+},{"./CollectionView":"4BOou","./UserShow":"2Tlyi","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"4BOou":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "CollectionView", ()=>CollectionView);
+class CollectionView {
+    constructor(parent, collection){
+        this.parent = parent;
+        this.collection = collection;
+    }
+    render() {
+        this.parent.innerHTML = "";
+        let templateElement = document.createElement("template");
+        for (let model of this.collection.models){
+            let itemParent = document.createElement("div");
+            this.renderItem(model, itemParent);
+            templateElement.content.append(itemParent);
+        }
+        this.parent.append(templateElement.content);
+    }
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2Tlyi":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "UserShow", ()=>UserShow);
+var _view = require("./View");
+class UserShow extends (0, _view.View) {
+    template() {
+        return `
+        <h2>User Details</h2>
+        <p>User Name: ${this.model.get("name")}</p>
+        <p>User Age: ${this.model.get("age")}</p>   
+      `;
+    }
+}
+
+},{"./View":"5Vo78","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"5Vo78":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+// import { User } from "../models/User";
+// <T extends Model<K>, K extends HasId> is like :
+// we are passing two generic types T and K, now K is being used by Model class 
+// generic type 
+// here instead of using T extends Model  we can create a interface that holds
+// all properties that Model class has and can use new interface in place of Model
+parcelHelpers.export(exports, "View", ()=>View);
+class View {
+    constructor(parent, model){
+        this.parent = parent;
+        this.model = model;
+        this.// abstract eventsMap():{[key: string]: ()=>void};
+        eventsMap = ()=>{
+            return {};
+        };
+        this.regions = {};
+        this.bindModel = ()=>{
+            this.model.on("change", ()=>{
+                this.render();
+            });
+        };
+        this.regionsMap = ()=>{
+            return {};
+        };
+        this.bindModel();
+    }
+    bindEvents(fragment) {
+        let eventsMay = this.eventsMap();
+        for(let eventKey in eventsMay){
+            let [eventName, selector] = eventKey.split(":");
+            fragment.querySelectorAll(selector).forEach((element)=>{
+                element.addEventListener(eventName, eventsMay[eventKey]);
+            });
+        }
+    }
+    mapRegions(fragment) {
+        const regionsMap = this.regionsMap();
+        for(let key in regionsMap){
+            let selector = regionsMap[key];
+            let element = fragment.querySelector(selector);
+            if (element) this.regions[key] = element;
+        }
+    }
+    onRender() {}
+    render() {
+        this.parent.innerHTML = "";
+        // const templateElement = document.createElement('div');
+        // templateElement.innerHTML = this.template();
+        // this.parent.append(templateElement);
+        // we can use div to append the content or can 
+        // use template like below(with some difference)
+        const templateElement = document.createElement("template");
+        templateElement.innerHTML = this.template();
+        this.bindEvents(templateElement.content);
+        this.mapRegions(templateElement.content);
+        this.onRender();
+        this.parent.append(templateElement.content);
+    // console.log(this.parent);
+    }
+}
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["aHFy6","h7u1C"], "h7u1C", "parcelRequire2d1f")
 

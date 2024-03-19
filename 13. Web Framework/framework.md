@@ -42,5 +42,17 @@ export class Attributes<T> {
 
 to
 
-export class Attributes<T extends object> {
+export class Attributes<T extends Object> {
 
+
+
+
+--------------------------
+import { Model } from '../models/Model';
+ 
+export abstract class View<T extends Model<K>, K> {
+change to:
+
+import { Model, HasId } from '../models/Model';
+ 
+export abstract class View<T extends Model<K>, K extends HasId> {
